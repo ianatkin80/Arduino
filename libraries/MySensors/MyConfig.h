@@ -1,4 +1,4 @@
-/**
+/*
  * The MySensors Arduino library handles the wireless radio link and protocol
  * between your home built sensors/actuators and HA controller of choice.
  * The sensors forms a self healing radio network with optional repeaters. Each
@@ -17,7 +17,11 @@
  * version 2 as published by the Free Software Foundation.
  */
 
-
+/**
+ * @file MyConfig.h
+ *
+ * MySensors specific configurations
+ */
 #ifndef MyConfig_h
 #define MyConfig_h
 #include <stdint.h>
@@ -75,32 +79,42 @@
 /**********************************
 *  Message Signing Settings
 ***********************************/
-// Disable to completly disable signing functionality in library
+/**
+ * @def MY_SIGNING_FEATURE
+ * @brief Enables signing functionality in library.
+ *
+ * For any signing related functionality to be included, this define has to be enabled.
+ */
 //#define MY_SIGNING_FEATURE
 
-// Define a suitable timeout for a signature verification session
-// Consider the turnaround from a nonce being generated to a signed message being received
-// which might vary, especially in networks with many hops. 5s ought to be enough for anyone.
+/**
+ * @brief Define a suitable timeout for a signature verification session
+ *
+ * Consider the turnaround from a nonce being generated to a signed message being received
+ * which might vary, especially in networks with many hops. 5s ought to be enough for anyone.
+ */
 #define MY_VERIFICATION_TIMEOUT_MS 5000
 
-// Enable to turn on whitelisting
-// When enabled, a signing node will salt the signature with it's unique signature and nodeId.
-// The verifying node will look up the sender in a local table of trusted nodes and
-// do the corresponding salting in order to verify the signature.
-// For this reason, if whitelisting is enabled on one of the nodes in a sign-verify pair, both
-// nodes have to implement whitelisting for this to work.
-// Note that a node can still transmit a non-salted message (i.e. have whitelisting disabled)
-// to a node that has whitelisting enabled (assuming the receiver does not have a matching entry
-// for the sender in it's whitelist)
+/**
+ * @def MY_SECURE_NODE_WHITELISTING
+ * @brief Enable to turn on whitelisting
+ *
+ * When enabled, a signing node will salt the signature with it's unique signature and nodeId.<br>
+ * The verifying node will look up the sender in a local table of trusted nodes and
+ * do the corresponding salting in order to verify the signature.<br>
+ * For this reason, if whitelisting is enabled on one of the nodes in a sign-verify pair, both
+ * nodes have to implement whitelisting for this to work.<br>
+ * Note that a node can still transmit a non-salted message (i.e. have whitelisting disabled)
+ * to a node that has whitelisting enabled (assuming the receiver does not have a matching entry
+ * for the sender in it's whitelist)
+ */
 //#define MY_SECURE_NODE_WHITELISTING
 
-// MySigningAtsha204 default setting
-#define MY_ATSHA204_PIN 17 // A3 - pin where ATSHA204 is attached
+#define MY_ATSHA204_PIN 17 //!< A3 - pin where ATSHA204 is attached (MySigningAtsha204 default setting)
 
-// MySigningAtsha204Soft default settings
-#define MY_RANDOMSEED_PIN 7 // A7 - Pin used for random generation (do not connect anything to this)
+#define MY_RANDOMSEED_PIN 7 //!< A7 - Pin used for random generation (do not connect anything to this) (MySigningAtsha204Soft default setting)
 
-// Key to use for HMAC calculation in MySigningAtsha204Soft (32 bytes)
+/** @brief Key to use for HMAC calculation in MySigningAtsha204Soft (32 bytes) (MySigningAtsha204Soft default setting) */
 #define MY_HMAC_KEY 0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00
 
 /**********************************
@@ -146,3 +160,10 @@
 
 
 #endif
+// Doxygen specific constructs, not included when built normally
+// This is used to enable disabled macros/definitions to be included in the documentation as well.
+#if DOXYGEN
+#define MY_SIGNING_FEATURE
+#define MY_SECURE_NODE_WHITELISTING
+#endif
+

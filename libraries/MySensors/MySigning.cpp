@@ -1,4 +1,4 @@
-/**
+/*
  * The MySensors Arduino library handles the wireless radio link and protocol
  * between your home built sensors/actuators and HA controller of choice.
  * The sensors forms a self healing radio network with optional repeaters. Each
@@ -19,9 +19,8 @@
 
 #include "MySigning.h"
 
-MySigning::MySigning(bool requestSignatures) : _requestSignatures(requestSignatures) {
+MySigning::MySigning(bool requestSigs) : _requestSignatures(requestSigs) {
 }
-
 
 bool MySigning::requestSignatures() {
 	return _requestSignatures;

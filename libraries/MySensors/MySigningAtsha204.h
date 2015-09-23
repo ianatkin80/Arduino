@@ -1,4 +1,4 @@
-/**
+/*
  * The MySensors Arduino library handles the wireless radio link and protocol
  * between your home built sensors/actuators and HA controller of choice.
  * The sensors forms a self healing radio network with optional repeaters. Each
@@ -34,9 +34,12 @@
 #include <stdint.h>
 
 #ifdef MY_SECURE_NODE_WHITELISTING
+/**
+ * @brief A single whitelist entry
+ */
 typedef struct {
-	uint8_t nodeId;
-	uint8_t serial[SHA204_SERIAL_SZ];
+	uint8_t nodeId;                   /**< @brief The ID of the node */
+	uint8_t serial[SHA204_SERIAL_SZ]; /**< @brief Node specific serial number */
 } whitelist_entry_t;
 #endif
 
@@ -46,7 +49,15 @@ typedef struct {
 class MySigningAtsha204 : public MySigning
 { 
 public:
-	MySigningAtsha204(bool requestSignatures=true,
+	/// @brief Construct the hardware implemented signing backend.
+        ///
+	/// With @ref MY_SECURE_NODE_WHITELISTING enabled, additional whitelist arguments can be provided
+	/// To initialize the backend with a whitelist to filter accepted senders.
+	/// @param requestSigs Set this to @c true if you want destination node to sign all messages sent to this node. Default is not to require signing.
+	/// @param nof_whitelist_entries The number of entries in the provided whitelist.
+	/// @param the_whitelist A list of whitelist entries.
+	/// @param atshaPin A digital IO pin used to communicate with ATSHA204A device. Defaults to @ref MY_ATSHA204_PIN.
+	MySigningAtsha204(bool requestSigs=true,
 #ifdef MY_SECURE_NODE_WHITELISTING
 		uint8_t nof_whitelist_entries=0, const whitelist_entry_t* the_whitelist=NULL,
 #endif

@@ -66,14 +66,14 @@ static void DEBUG_SIGNING_PRINTBUF(const __FlashStringHelper* str, uint8_t* buf,
 // Initialize hmacKey from MyConfig.h (codebender didn't like static initialization in constructor)
 uint8_t MySigningAtsha204Soft::hmacKey[32] = { MY_HMAC_KEY };
 
-MySigningAtsha204Soft::MySigningAtsha204Soft(bool requestSignatures,
+MySigningAtsha204Soft::MySigningAtsha204Soft(bool requestSigs,
 #ifdef MY_SECURE_NODE_WHITELISTING
 	uint8_t nof_whitelist_entries, const whitelist_entry_t* the_whitelist,
 	const uint8_t* the_serial,
 #endif
 	uint8_t randomseedPin)
 	:
-	MySigning(requestSignatures),
+	MySigning(requestSigs),
 #ifdef MY_SECURE_NODE_WHITELISTING
 	whitlist_sz(nof_whitelist_entries),
 	whitelist(the_whitelist),

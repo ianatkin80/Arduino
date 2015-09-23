@@ -58,13 +58,13 @@ static void DEBUG_SIGNING_PRINTBUF(const __FlashStringHelper* str, uint8_t* buf,
 #endif
 
 
-MySigningAtsha204::MySigningAtsha204(bool requestSignatures,
+MySigningAtsha204::MySigningAtsha204(bool requestSigs,
 #ifdef MY_SECURE_NODE_WHITELISTING
 	uint8_t nof_whitelist_entries, const whitelist_entry_t* the_whitelist,
 #endif
 	uint8_t atshaPin)
 	:
-	MySigning(requestSignatures),
+	MySigning(requestSigs),
 	atsha204(atshaPin),
 #ifdef MY_SECURE_NODE_WHITELISTING
 	whitelist(the_whitelist),

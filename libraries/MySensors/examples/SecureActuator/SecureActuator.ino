@@ -1,4 +1,4 @@
-/**
+/*
  * The MySensors Arduino library handles the wireless radio link and protocol
  * between your home built sensors/actuators and HA controller of choice.
  * The sensors forms a self healing radio network with optional repeaters. Each
@@ -25,9 +25,26 @@
  * Example sketch showing how to securely control locks. 
  * This example will remember lock state even after power failure.
  */
- 
 
-#define USE_SOFTWARE_ATSHA // Disable to use ATSHA204A circuit
+/**
+ * @example SecureActuator.ino
+ * This example implements a secure actuator in the form of a IO controlled electrical lock.<br>
+ * Multiple locks are supported as long as they are on subsequent IO pin indices. The first lock pin
+ * is defined by #LOCK_1. The number of locks is controlled by #NOF_LOCKS .<br>
+ * The sketch will require incoming messages to be signed and the use of signing backend is selected
+ * by #USE_SOFTWARE_ATSHA. Hard or soft ATSHA204 signing is supported.<br>
+ * If soft signing is chosen, make sure to use a correct HMAC key (see #MY_HMAC_KEY).<br>
+ * Whitelisting can be enabled through #MY_SECURE_NODE_WHITELISTING in which case a single entry
+ * is provided in this example which typically should map to the gateway of the network.
+ * See @ref node_whitelist and @ref soft_serial.
+ */
+
+// Doxygen specific constructs, not included when built normally
+// This is used to enable disabled macros/definitions to be included in the documentation as well.
+#if DOXYGEN
+#define MY_SIGNING_FEATURE          //!< Enable to use signing
+#define MY_SECURE_NODE_WHITELISTING //!< Enable to use whitelisting
+#endif
 
 #include <MyTransportNRF24.h>
 #include <MyHwATMega328.h>
@@ -39,26 +56,30 @@
 #include <MySigningAtsha204.h>
 #endif
 
-#define LOCK_1  3  // Arduino Digital I/O pin number for first lock (second on pin+1 etc)
-#define NOF_LOCKS 1 // Total number of attached locks
-#define LOCK_LOCK 1  // GPIO value to write to lock attached lock
-#define LOCK_UNLOCK 0 // GPIO value to write to unlock attached lock
+#define USE_SOFTWARE_ATSHA //!< Disable to use ATSHA204A circuit
 
-MyTransportNRF24 radio;  // NRFRF24L01 radio driver
-MyHwATMega328 hw; // Select AtMega328 hardware profile
+#define LOCK_1  3     //!< Arduino Digital I/O pin number for first lock (second on pin+1 etc)
+#define NOF_LOCKS 1   //!< Total number of attached locks
+#define LOCK_LOCK 1   //!< GPIO value to write to lock attached lock
+#define LOCK_UNLOCK 0 //!< GPIO value to write to unlock attached lock
+
+MyTransportNRF24 radio;  //!< NRFRF24L01 radio driver
+MyHwATMega328 hw;        //!< AtMega328 hardware profile
 #ifdef MY_SIGNING_FEATURE
 #ifdef MY_SECURE_NODE_WHITELISTING
 #ifdef USE_SOFTWARE_ATSHA
-// Change the soft_serial value to an arbitrary value for proper security
+/** @brief Change the soft_serial value to an arbitrary value for proper security */
 uint8_t soft_serial[SHA204_SERIAL_SZ] = {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0x09};
 #endif
-// We only use one whitelist entry (the gateway)
+
+/** @brief We only use one whitelist entry (the gateway) */
 whitelist_entry_t node_whitelist[] = {
   { .nodeId = GATEWAY_ADDRESS,
     .serial = {0x09,0x08,0x07,0x06,0x05,0x04,0x03,0x02,0x01} }
 };
 #ifdef USE_SOFTWARE_ATSHA
-MySigningAtsha204Soft signer(true, 1, node_whitelist, soft_serial);  // Message signing driver
+
+MySigningAtsha204Soft signer(true, 1, node_whitelist, soft_serial); //!< Message signing driver
 #else
 MySigningAtsha204 signer(true, 1, node_whitelist);
 #endif
@@ -69,12 +90,13 @@ MySigningAtsha204Soft signer;
 MySigningAtsha204 signer;
 #endif
 #endif
-MySensor gw(radio, hw, signer);
+MySensor gw(radio, hw, signer); //!< Construct MySensor instance
 #else
 // WARNING! SecureActuator cannot possibly be secure without signing enabled
 MySensor gw(radio, hw);
 #endif
 
+/** @brief Sketch setup code */
 void setup()  
 {
   // Initialize library and add callback for incoming messages (signing is required)
@@ -93,13 +115,18 @@ void setup()
   }
 }
 
-
+/** @brief Sketch execution code */
 void loop() 
 {
   // Alway process incoming messages whenever possible
   gw.process();
 }
 
+/**
+ * @brief Incoming message handler
+ *
+ * @param message The message to handle.
+ */
 void incomingMessage(const MyMessage &message) {
   // We only expect one type of message from controller. But we better check anyway.
   if (message.type==V_LOCK_STATUS && message.sensor<=NOF_LOCKS) {
@@ -114,4 +141,3 @@ void incomingMessage(const MyMessage &message) {
      Serial.println(message.getBool());
    } 
 }
-

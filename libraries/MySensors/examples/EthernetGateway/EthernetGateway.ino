@@ -32,7 +32,7 @@
  * 
  *
  * COMPILING WIZNET (W5100) ETHERNET MODULE
- * > Edit MyConfig.h in (libraries\MySensors\) to enable softspi (remove // before "#define SOFTSPI").
+ * > Edit MyConfig.h in (libraries/MySensors/) to enable softspi (remove // before "#define SOFTSPI").
  *
  * COMPILING ENC28J60 ETHERNET MODULE
  * > Use Arduino IDE 1.5.7 (or later) 

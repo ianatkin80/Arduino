@@ -1,4 +1,4 @@
-/**
+/*
  * The MySensors Arduino library handles the wireless radio link and protocol
  * between your home built sensors/actuators and HA controller of choice.
  * The sensors forms a self healing radio network with optional repeaters. Each
@@ -214,6 +214,7 @@ typedef enum {
 #define miGetPayloadType() BF_GET(command_ack_payload, 5, 3)
 
 
+#if !DOXYGEN
 #ifdef __cplusplus
 class MyMessage
 {
@@ -309,6 +310,7 @@ struct
 };
 uint8_t array[HEADER_SIZE + MAX_PAYLOAD + 1];	
 } __attribute__((packed)) MyMessage;
+#endif
 #endif
 
 #endif

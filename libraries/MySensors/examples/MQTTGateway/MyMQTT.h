@@ -8,7 +8,7 @@ This program is free software; you can redistribute it and/or
 modify it under the terms of the GNU General Public License
 version 2 as published by the Free Software Foundation.
 */
-
+#if !DOXYGEN
 #ifdef DEBUG
 #define TCPDUMP					// Dump TCP packages
 #endif
@@ -22,7 +22,7 @@ version 2 as published by the Free Software Foundation.
 #define MQTT_UNIT		"M"		// Select M for metric or I for imperial.
 #define MQTT_TRANSLATE_TYPES			// V_TYPE in address, Comment if you want all numbers (MyMQTT/01/01/01)
  
-//////////////////////////////////////////////////////////////////
+/*//////////////////////////////////////////////////////////////*/
 
 #define EEPROM_LATEST_NODE_ADDRESS ((uint8_t)EEPROM_LOCAL_CONFIG_ADDRESS)
 #define MQTT_MAX_PACKET_SIZE 100
@@ -115,7 +115,7 @@ char V_61[] PROGMEM = "SKETCH_NAME";	//Custom for MQTTGateway
 char V_62[] PROGMEM = "SKETCH_VERSION"; //Custom for MQTTGateway
 char V_63[] PROGMEM = "UNKNOWN"; 	//Custom for MQTTGateway
 
-//////////////////////////////////////////////////////////////////
+/*//////////////////////////////////////////////////////////////*/
 
 PROGMEM const char *vType[] = {
 	V_0, V_1, V_2, V_3, V_4, V_5, V_6, V_7, V_8, V_9, V_10,
@@ -136,3 +136,4 @@ PROGMEM const char *vType[] = {
 
 #define S_FIRSTCUSTOM 60
 #define V_UNKNOWN 63
+#endif

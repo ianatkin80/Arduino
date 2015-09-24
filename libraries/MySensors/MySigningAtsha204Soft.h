@@ -17,23 +17,25 @@
  * version 2 as published by the Free Software Foundation.
  *
  *******************************
- *
- * DESCRIPTION
- * Signing support created by Patrick "Anticimex" Fallberg <patrick@fallberg.net>
- * ATSHA204 emulated signing backend. The emulated ATSHA204 implementation offers pseudo random
- * number generation and HMAC-SHA256 authentication compatible with a "physical" ATSHA204.
- * NOTE: Key is stored in clear text in the Arduino firmware. Therefore, the use of this back-end
- * could compromise the key used in the signed message infrastructure if device is lost and its memory
- * dumped.
- *
  */
 /**
  * @ingroup MySigninggrp MySigning
  * @{
+ * @file MySigningAtsha204Soft.h
+ * @brief ATSHA204 emulated signing backend.
  *
+ * The emulated ATSHA204 implementation offers pseudo random number generation and HMAC-SHA256
+ * authentication compatible with a "physical" ATSHA204.
+ * @note Key is stored in clear text in the Arduino firmware. Therefore, the use of this back-end
+ * could compromise the key used in the signed message infrastructure if device is lost and its memory
+ * dumped.
+ *
+ * REVISION HISTORY
+ *  - See git log
  */
-#ifndef MySigningHmac256Soft_h
-#define MySigningHmac256Soft_h
+
+#ifndef MySigningAtsha204Soft_h
+#define MySigningAtsha204Soft_h
 
 #include "MyConfig.h"
 #include "MySigning.h"

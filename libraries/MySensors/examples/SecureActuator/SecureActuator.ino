@@ -17,13 +17,17 @@
  * version 2 as published by the Free Software Foundation.
  *
  *******************************
+ */
+/**
+ * @ingroup MySigninggrp
+ * @{
+ * @file SecureActuator.ino
+ * @brief Example sketch showing how to securely control locks.
+ *
+ * This example will remember lock state even after power failure.
  *
  * REVISION HISTORY
- * Version 1.0 - Patrick "Anticimex" Fallberg <patrick@fallberg.net>
- * 
- * DESCRIPTION
- * Example sketch showing how to securely control locks. 
- * This example will remember lock state even after power failure.
+ *  - See git log (git log libraries/MySensors/examples/SecureActuator/SecureActuator.ino)
  */
 
 /**
@@ -37,6 +41,8 @@
  * Whitelisting can be enabled through #MY_SECURE_NODE_WHITELISTING in which case a single entry
  * is provided in this example which typically should map to the gateway of the network.
  * See @ref node_whitelist and @ref soft_serial.
+ *
+ * Details of this example is documented in SecureActuator.ino.
  */
 
 // Doxygen specific constructs, not included when built normally
@@ -141,3 +147,4 @@ void incomingMessage(const MyMessage &message) {
      Serial.println(message.getBool());
    } 
 }
+/** @}*/

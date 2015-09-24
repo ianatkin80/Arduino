@@ -17,12 +17,18 @@
  * version 2 as published by the Free Software Foundation.
  *
  *******************************
+ */
+/**
+ * @ingroup MySigninggrp
+ * @{
+ * @file MySigningAtsha204.h
+ * @brief ATSHA204 signing backend.
  *
- * DESCRIPTION
- * Signing support created by Patrick "Anticimex" Fallberg <patrick@fallberg.net>
- * ATSHA204 signing backend. The Atmel ATSHA204 offers true random number generation and
+ * The Atmel ATSHA204 offers true random number generation and
  * HMAC-SHA256 authentication with a readout-protected key.
  *
+ * REVISION HISTORY
+ *  - See git log
  */
 
 #ifndef MySigningAtsha204_h
@@ -84,3 +90,4 @@ private:
 };
 
 #endif
+/** @}*/

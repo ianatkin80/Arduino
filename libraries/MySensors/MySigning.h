@@ -15,6 +15,8 @@
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * version 2 as published by the Free Software Foundation.
+ *
+ *******************************
  */
 /**
  * @defgroup MySigninggrp MySigning
@@ -22,8 +24,11 @@
  *
  * @brief The signing driver provides a generic API for various signing backends to offer
  * signing of MySensors messages.
-
+ *
  * Signing support created by Patrick "Anticimex" Fallberg <patrick@fallberg.net>
+ *
+ * REVISION HISTORY
+ *  - See git log
  *
  * @section MySigninggrpbackground Background and concepts
  *
@@ -446,8 +451,12 @@
 
 /**
  * @file MySigning.h
+ * @brief The generic API for various signing backends to offer signing of MySensors messages.
  *
- * Class declaration for MySigning signing backend
+ * Signing support created by Patrick "Anticimex" Fallberg <patrick@fallberg.net>
+ *
+ * REVISION HISTORY
+ *  - See git log
  */
 #ifndef MySigning_h
 #define MySigning_h

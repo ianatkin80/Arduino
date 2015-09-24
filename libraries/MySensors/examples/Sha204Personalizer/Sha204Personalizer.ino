@@ -17,12 +17,15 @@
  * version 2 as published by the Free Software Foundation.
  *
  *******************************
+ */
+/**
+ * @ingroup MySigninggrp
+ * @{
+ * @file Sha204Personalizer.ino
+ * @brief SHA204 personalization sketch
  *
  * REVISION HISTORY
- * Version 1.0 - Patrick Fallberg, January 10, 2015
- * 
- * DESCRIPTION
- * SHA204 personalization sketch
+ *  - See git log (git log libraries/MySensors/examples/Sha204Personalizer/Sha204Personalizer.ino)
  */
 
 /**
@@ -43,6 +46,8 @@
  * console when prompted to do any locking. On boards that does not provide UART
  * input it is possible to configure the sketch to skip this confirmation.
  * Default settings use ATSHA204 on @ref ATSHA204_PIN.
+ *
+ * Details of this example is documented in Sha204Personalizer.ino.
  */
 
 #include <sha204_library.h>
@@ -1045,3 +1050,4 @@ void setup()
 void loop()
 {
 }
+/** @}*/

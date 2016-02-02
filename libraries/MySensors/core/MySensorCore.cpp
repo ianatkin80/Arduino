@@ -28,7 +28,7 @@ MyMessage _msgTmp; // Buffer for temporary messages (acks and nonces among other
 	char _convBuf[MAX_PAYLOAD*2+1];
 #endif
 
-uint16_t _heartbeat;
+uint32_t _heartbeat = 0;
 void (*_timeCallback)(unsigned long); // Callback for requested time messages
 
 
@@ -62,9 +62,11 @@ static inline bool isValidParent( const uint8_t parent ) {
 void _begin() {
 	#if !defined(MY_DISABLED_SERIAL)
 	    hwInit();
-    #endif
+	#endif
 
 	debug(PSTR("Starting " MY_NODE_TYPE " (" MY_CAPABILIIES ", " LIBRARY_VERSION ")\n"));
+
+	signerInit();
 
 	#if defined(MY_RADIO_FEATURE)
 		_failedTransmissions = 0;
@@ -102,11 +104,6 @@ void _begin() {
 	#endif
 
 
-	#if defined(MY_SIGNING_FEATURE)
-		// Read out the signing requirements from EEPROM
-		hwReadConfigBlock((void*)_doSign, (void*)EEPROM_SIGNING_REQUIREMENT_TABLE_ADDRESS, sizeof(_doSign));
-	#endif
-
 	#if defined(MY_LEDS_BLINKING_FEATURE)
 		ledsInit();
 	#endif
@@ -126,8 +123,6 @@ void _begin() {
 	#elif defined(MY_RADIO_FEATURE)
 		// Read settings from eeprom
 		hwReadConfigBlock((void*)&_nc, (void*)EEPROM_NODE_ID_ADDRESS, sizeof(NodeConfig));
-		// Read latest received controller configuration from EEPROM
-		hwReadConfigBlock((void*)&_cc, (void*)EEPROM_CONTROLLER_CONFIG_ADDRESS, sizeof(ControllerConfig));
 		#ifdef MY_OTA_FIRMWARE_FEATURE
 			// Read firmware config from EEPROM, i.e. type, version, CRC, blocks
 			hwReadConfigBlock((void*)&_fc, (void*)EEPROM_FIRMWARE_TYPE_ADDRESS, sizeof(NodeFirmwareConfig));
@@ -157,6 +152,31 @@ void _begin() {
 		}
 	#endif
 
+#ifdef MY_NODE_LOCK_FEATURE
+	// Check if node has been locked down
+	if (hwReadConfig(EEPROM_NODE_LOCK_COUNTER) == 0) {
+		// Node is locked, check if unlock pin is asserted, else hang the node
+		pinMode(MY_NODE_UNLOCK_PIN, INPUT_PULLUP);
+		// Make a short delay so we are sure any large external nets are fully pulled
+		unsigned long enter = hwMillis();
+		while (hwMillis() - enter < 2);
+		if (digitalRead(MY_NODE_UNLOCK_PIN) == 0) {
+			// Pin is grounded, reset lock counter
+			hwWriteConfig(EEPROM_NODE_LOCK_COUNTER, MY_NODE_LOCK_COUNTER_MAX);
+			// Disable pullup
+			pinMode(MY_NODE_UNLOCK_PIN, INPUT);
+			debug(PSTR("Node is unlocked.\n"));
+		} else {
+			// Disable pullup
+			pinMode(MY_NODE_UNLOCK_PIN, INPUT);
+			nodeLock("LDB"); //Locked during boot
+		}
+	} else if (hwReadConfig(EEPROM_NODE_LOCK_COUNTER) == 0xFF) {
+		// Reset walue
+		hwWriteConfig(EEPROM_NODE_LOCK_COUNTER, MY_NODE_LOCK_COUNTER_MAX);
+	}
+#endif
+
 	// Call sketch setup
 	if (setup)
 		setup();
@@ -167,6 +187,7 @@ void _begin() {
 	#endif
 	if (presentation)
 		presentation();
+
 	debug(PSTR("Init complete, id=%d, parent=%d, distance=%d\n"), _nc.nodeId, _nc.parentNodeId, _nc.distance);
 }
 
@@ -183,6 +204,11 @@ ControllerConfig getConfig() {
 
 
 boolean _sendRoute(MyMessage &message) {
+	// increment heartbeat counter
+	_heartbeat++;
+	#if defined(MY_CORE_ONLY)
+		(void)message;
+	#endif
 	#if defined(MY_GATEWAY_FEATURE)
 		if (message.destination == _nc.nodeId) {
 			// This is a message sent from a sensor attached on the gateway node.
@@ -210,7 +236,7 @@ void sendBatteryLevel(uint8_t value, bool enableAck) {
 }
 
 void sendHeartbeat(void) {
-	_sendRoute(build(_msg, _nc.nodeId, GATEWAY_ADDRESS, NODE_SENSOR_ID, C_INTERNAL, I_HEARTBEAT, false).set(_heartbeat++));
+	_sendRoute(build(_msg, _nc.nodeId, GATEWAY_ADDRESS, NODE_SENSOR_ID, C_INTERNAL, I_HEARTBEAT_RESPONSE, false).set(_heartbeat));
 
 }
 
@@ -266,15 +292,7 @@ void _processInternalMessages() {
 				presentation();
 		}
 	} else if (type == I_HEARTBEAT) {
-		if (!mGetAck(_msg)) {
-			// Send heartbeat ack message back to sender (with the same payload)
-			_msgTmp = _msg;
-			mSetRequestAck(_msgTmp,false); // Reply without ack flag (otherwise we would end up in an eternal loop)
-			mSetAck(_msgTmp,true);
-			_msgTmp.sender = _nc.nodeId;
-			_msgTmp.destination = _msg.sender;
-			_sendRoute(_msgTmp);
-		}
+		sendHeartbeat();
 	} else if (type == I_TIME && receiveTime) {
 		// Deliver time to callback
 		if (receiveTime)
@@ -317,73 +335,113 @@ void wait(unsigned long ms) {
 	}
 }
 
-void sleep(unsigned long ms) {
-	#if defined(MY_OTA_FIRMWARE_FEATURE)
-		if (_fwUpdateOngoing) {
-			// Do not sleep node while fw update is ongoing
-			_process();
-			return;
-		} else {
-	#endif
-		#if defined(MY_RADIO_FEATURE)
-			transportPowerDown();
-		#endif
-			hwSleep(ms);
-	#if defined(MY_OTA_FIRMWARE_FEATURE)
-		}
-	#endif
-}
-
-void smartSleep(unsigned long ms) {
-	wait(MY_SMART_SLEEP_WAIT_DURATION);
-	sleep(ms);
-	sendHeartbeat();
-}
-
-bool sleep(uint8_t interrupt, uint8_t mode, unsigned long ms) {
+int8_t sleep(unsigned long ms) {
 	#if defined(MY_OTA_FIRMWARE_FEATURE)
 	if (_fwUpdateOngoing) {
 		// Do not sleep node while fw update is ongoing
-		return false;
-	} else {
+		wait(ms);
+		return -1;
+	}
 	#endif
+	// if repeater, do not sleep
+	#if defined(MY_REPEATER_FEATURE)
+		wait(ms);
+		return -1;
+	#else
 		#if defined(MY_RADIO_FEATURE)
 			transportPowerDown();
 		#endif
-		return hwSleep(interrupt, mode, ms) ;
-	#if defined(MY_OTA_FIRMWARE_FEATURE)
-	}
+		return hwSleep(ms);
 	#endif
 }
 
-bool smartSleep(uint8_t interrupt, uint8_t mode, unsigned long ms) {
-	wait(MY_SMART_SLEEP_WAIT_DURATION);
-	bool ret = sleep(interrupt, mode, ms);
+int8_t smartSleep(unsigned long ms) {
+	int8_t ret = sleep(ms);
+	// notifiy controller about wake up
 	sendHeartbeat();
+	// listen for incoming messages
+	wait(MY_SMART_SLEEP_WAIT_DURATION);
+	return ret;
+}
+
+int8_t sleep(uint8_t interrupt, uint8_t mode, unsigned long ms) {
+	#if defined(MY_OTA_FIRMWARE_FEATURE)
+	if (_fwUpdateOngoing) {
+		// not supported
+		return -2;
+	}
+	#endif
+	#if defined(MY_REPEATER_FEATURE)
+		// not supported
+		(void)interrupt;
+		(void)mode;
+		(void)ms;
+		return -2;
+	#else
+		#if defined(MY_RADIO_FEATURE)
+			transportPowerDown();
+		#endif
+		return hwSleep(interrupt, mode, ms);
+	#endif
+}
+
+int8_t smartSleep(uint8_t interrupt, uint8_t mode, unsigned long ms) {
+	int8_t ret = sleep(interrupt, mode, ms);
+	// notifiy controller about wake up
+	sendHeartbeat();
+	// listen for incoming messages
+	wait(MY_SMART_SLEEP_WAIT_DURATION);
 	return ret;
 }
 
 int8_t sleep(uint8_t interrupt1, uint8_t mode1, uint8_t interrupt2, uint8_t mode2, unsigned long ms) {
 	#if defined(MY_OTA_FIRMWARE_FEATURE)
 	if (_fwUpdateOngoing) {
-		// Do not sleep node while fw update is ongoing
-		return -1;
-	} else {
+		// not supported
+		return -2;
+	}
 	#endif
+	#if defined(MY_REPEATER_FEATURE)
+		// not supported
+		(void)interrupt1;
+		(void)mode1;
+		(void)interrupt2;
+		(void)mode2;
+		(void)ms;
+		return -2;
+	#else
 		#if defined(MY_RADIO_FEATURE)
 			transportPowerDown();
 		#endif
-		return hwSleep(interrupt1, mode1, interrupt2, mode2, ms) ;
-	#if defined(MY_OTA_FIRMWARE_FEATURE)
-	}
+		return hwSleep(interrupt1, mode1, interrupt2, mode2, ms);
 	#endif
 }
 
 int8_t smartSleep(uint8_t interrupt1, uint8_t mode1, uint8_t interrupt2, uint8_t mode2, unsigned long ms) {
-	wait(MY_SMART_SLEEP_WAIT_DURATION);
 	int8_t ret = sleep(interrupt1, mode1, interrupt2, mode2, ms);
+	// notifiy controller about wake up
 	sendHeartbeat();
+	// listen for incoming messages
+	wait(MY_SMART_SLEEP_WAIT_DURATION);
 	return ret;
 }
 
+#ifdef MY_NODE_LOCK_FEATURE
+void nodeLock(const char* str) {
+	// Make sure EEPROM is updated to locked status
+	hwWriteConfig(EEPROM_NODE_LOCK_COUNTER, 0);
+	while (1) {
+		debug(PSTR("Node is locked. Ground pin %d and reset to unlock.\n"), MY_NODE_UNLOCK_PIN);
+		#if defined(MY_GATEWAY_ESP8266)
+			yield();
+		#endif
+		_sendRoute(build(_msg, _nc.nodeId, GATEWAY_ADDRESS, NODE_SENSOR_ID,
+			C_INTERNAL, I_LOCKED, false).set(str));
+		#if defined(MY_RADIO_FEATURE)
+			transportPowerDown();
+		#endif
+		(void)hwSleep((unsigned long)1000*60*30); // Sleep for 30 min before resending LOCKED message
+	}
+}
+#endif
 

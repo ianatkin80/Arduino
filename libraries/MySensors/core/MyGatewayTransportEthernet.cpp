@@ -107,22 +107,22 @@ bool gatewayTransportInit() {
 		while (WiFi.status() != WL_CONNECTED)
 		{
 			delay(500);
-			Serial.print(".");
+			MY_SERIALDEVICE.print(".");
 			yield();
 		}
-		Serial.print(F("IP: "));
-		Serial.println(WiFi.localIP());
+		MY_SERIALDEVICE.print(F("IP: "));
+		MY_SERIALDEVICE.println(WiFi.localIP());
 
 	#else
 		#ifdef MY_IP_ADDRESS
 			Ethernet.begin(_ethernetGatewayMAC, _ethernetGatewayIP);
-			Serial.print(F("IP: "));
-			Serial.println(Ethernet.localIP());
+			MY_SERIALDEVICE.print(F("IP: "));
+			MY_SERIALDEVICE.println(Ethernet.localIP());
 		#else
 			// Get IP address from DHCP
 			Ethernet.begin(_ethernetGatewayMAC);
-			Serial.print(F("IP: "));
-			Serial.println(Ethernet.localIP());
+			MY_SERIALDEVICE.print(F("IP: "));
+			MY_SERIALDEVICE.println(Ethernet.localIP());
 		#endif /* IP_ADDRESS_DHCP */
 		// give the Ethernet interface a second to initialize
 		// TODO: use HW delay
@@ -156,7 +156,11 @@ bool gatewayTransportSend(MyMessage &message)
 			ret = _ethernetServer.endPacket();
 		#else
 			EthernetClient client;
-			if (client.connect(_ethernetControllerIP, MY_PORT)) {
+			#if defined(MY_CONTROLLER_URL_ADDRESS)
+				if (client.connect(MY_CONTROLLER_URL_ADDRESS, MY_PORT)) {
+			#else
+				if (client.connect(_ethernetControllerIP, MY_PORT)) {
+			#endif
 				client.write(_ethernetMsg, strlen(_ethernetMsg));
 				client.stop();
 			}

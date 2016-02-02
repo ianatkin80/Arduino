@@ -78,7 +78,6 @@
 #define MY_RADIO_NRF24
 //#define MY_RADIO_RFM69
 
-// Gateway mode always enabled for ESP8266. But we add this anyway ;)
 #define MY_GATEWAY_ESP8266
 
 #define MY_ESP8266_SSID "MySSID"
@@ -142,7 +141,7 @@ void presentation() {
 
 
 void loop() {
-  // Send locally attech sensors data here
+  // Send locally attached sensors data here
 }
 
 

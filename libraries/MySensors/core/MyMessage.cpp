@@ -100,7 +100,7 @@ char* MyMessage::getString(char *buffer) const {
 		} else if (payloadType == P_ULONG32) {
 			ultoa(ulValue, buffer, 10);
 		} else if (payloadType == P_FLOAT32) {
-			dtostrf(fValue,2,fPrecision,buffer);
+			dtostrf(fValue,2,min(fPrecision, 8),buffer);
 		} else if (payloadType == P_CUSTOM) {
 			return getCustomString(buffer);
 		}
@@ -111,7 +111,7 @@ char* MyMessage::getString(char *buffer) const {
 }
 
 bool MyMessage::getBool() const {
-	return getInt();
+	return getByte();
 }
 
 uint8_t MyMessage::getByte() const {
@@ -203,10 +203,18 @@ MyMessage& MyMessage::set(const char* value) {
 	uint8_t length = value == NULL ? 0 : min(strlen(value), MAX_PAYLOAD);
 	miSetLength(length);
 	miSetPayloadType(P_STRING);
-	if (length)
+	if (length) {		
 		strncpy(data, value, length);
-	else
-		data[0] ='\0';
+	}
+	// null terminate string
+	data[length] = 0;
+	return *this;
+}
+
+MyMessage& MyMessage::set(bool value) {
+	miSetLength(1);
+	miSetPayloadType(P_BYTE);
+	data[0] = value;
 	return *this;
 }
 
